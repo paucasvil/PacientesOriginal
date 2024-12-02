@@ -4,11 +4,17 @@ import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -41,76 +47,128 @@ fun AltaPaciente(modifier: Modifier = Modifier, navHostController: NavHostContro
     val apiFacade = ApiServiceRetrofitImp(RetrofitInstance.apiService)
     val viewModelFactory = ViewModelFactory(apiFacade)
     val viewModel: ViewModelExample = viewModel(factory = viewModelFactory)
-    Column(
-        modifier = modifier
-            .fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
 
+    // Contexto para mostrar Toast
+    val context = LocalContext.current
+
+    // Estados de entrada
+    var nombre by remember { mutableStateOf("") }
+    var apellido by remember { mutableStateOf("") }
+    var edad by remember { mutableStateOf("") }
+    var sexo by remember { mutableStateOf("") }
+
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .background(color = MaterialTheme.colorScheme.background),
+        contentAlignment = Alignment.Center
     ) {
-        val context = LocalContext.current
-        var nombre by remember {
-            mutableStateOf("")
-        }
-        var apellido by remember {
-            mutableStateOf("")
-        }
-        var edad by remember { mutableStateOf("") }
-        var sexo by remember { mutableStateOf("") }
-        Text(text = "ALTA DE PACIENTES", fontWeight = FontWeight.Bold, fontSize = 30.sp)
-        Spacer(modifier = Modifier.height(20.dp))
-        TextField(
-            value = nombre,
-            onValueChange = { nombre = it },
-            label = { Text(text = "Nombre") })
-        Spacer(modifier = Modifier.height(20.dp))
-        TextField(
-            value = apellido,
-            onValueChange = { apellido = it },
-            label = { Text(text = "Apellido") })
-        Spacer(modifier = Modifier.height(20.dp))
-        TextField(
-            value = edad.toString(),
-            onValueChange = { edad = it },
-            label = { Text(text = "Edad") },
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Number
-            )
-        )
-        Spacer(modifier = Modifier.height(20.dp))
-        TextField(value = sexo, onValueChange = { sexo = it }, label = { Text(text = "Sexo") })
-        Spacer(modifier = Modifier.height(20.dp))
-        Button(onClick = {
-            val paciente = Paciente(
-                nombre = nombre,
-                apellido = apellido,
-                edad = edad.toInt(),
-                sexo = sexo.first()
-            )
-            viewModel.viewModelScope.launch {
-                val result = viewModel.altaPaciente(paciente)
-                if (result) {
-                    Toast.makeText(
-                        context,
-                        "Paciente creado!",
-                        Toast.LENGTH_LONG
-                    ).show()
-                } else {
-                    Toast.makeText(
-                        context,
-                        "Paciente no creado!",
-                        Toast.LENGTH_LONG
-                    ).show()
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth(0.9f)
+                .padding(16.dp),
+            tonalElevation = 4.dp,
+            shape = MaterialTheme.shapes.medium
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "ALTA DE PACIENTES",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+
+                TextField(
+                    value = nombre,
+                    onValueChange = { nombre = it },
+                    label = { Text(text = "Nombre") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                TextField(
+                    value = apellido,
+                    onValueChange = { apellido = it },
+                    label = { Text(text = "Apellido") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                TextField(
+                    value = edad,
+                    onValueChange = { edad = it },
+                    label = { Text(text = "Edad") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                TextField(
+                    value = sexo,
+                    onValueChange = { sexo = it },
+                    label = { Text(text = "Sexo") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    Button(
+                        onClick = {
+                            // Validación básica
+                            if (nombre.isBlank() || apellido.isBlank() || edad.isBlank() || sexo.isBlank()) {
+                                Toast.makeText(
+                                    context,
+                                    "Por favor, llena todos los campos.",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                                return@Button
+                            }
+
+                            val paciente = Paciente(
+                                nombre = nombre,
+                                apellido = apellido,
+                                edad = edad.toIntOrNull() ?: 0,
+                                sexo = sexo.firstOrNull() ?: 'N'
+                            )
+                            viewModel.viewModelScope.launch {
+                                val result = viewModel.altaPaciente(paciente)
+                                if (result) {
+                                    Toast.makeText(
+                                        context,
+                                        "Paciente creado!",
+                                        Toast.LENGTH_LONG
+                                    ).show()
+                                    navHostController.navigateUp()
+                                } else {
+                                    Toast.makeText(
+                                        context,
+                                        "Error al crear paciente.",
+                                        Toast.LENGTH_LONG
+                                    ).show()
+                                }
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                    ) {
+                        Text(text = "Alta", color = MaterialTheme.colorScheme.onPrimary)
+                    }
+
+                    Button(
+                        onClick = { navHostController.navigateUp() },
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
+                    ) {
+                        Text(text = "Atrás", color = MaterialTheme.colorScheme.onSecondary)
+                    }
                 }
             }
-        }) {
-            Text(text = "Alta")
-        }
-        Button(onClick = { navHostController.navigateUp() }) {
-            Text(text = "Atras")
         }
     }
 }
+
 
 @Preview
 @Composable

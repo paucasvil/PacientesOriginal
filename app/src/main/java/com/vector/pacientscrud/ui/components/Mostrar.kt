@@ -6,6 +6,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -15,6 +18,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -22,6 +26,7 @@ import com.vector.pacientscrud.data.implementations.ApiServiceRetrofitImp
 import com.vector.pacientscrud.data.model.Paciente
 import com.vector.pacientscrud.di.RetrofitInstance
 import kotlinx.coroutines.launch
+
 
 @Composable
 fun Mostrar(modifier: Modifier = Modifier, paciente: Paciente, navHostController: NavHostController) {
@@ -34,10 +39,16 @@ fun Mostrar(modifier: Modifier = Modifier, paciente: Paciente, navHostController
     val apellido = remember { mutableStateOf(paciente.apellido) }
     val edad = remember { mutableStateOf(paciente.edad.toString()) }
     val sexo = remember { mutableStateOf(paciente.sexo.toString()) }
+    val direccion = remember { mutableStateOf(paciente.direccion ?: "") }
+    val telefono = remember { mutableStateOf(paciente.telefono ?: "") }
+    val tipo_sangre = remember { mutableStateOf(paciente.tipo_sangre ?: "") }
+    val peso = remember { mutableStateOf(paciente.peso?.toString() ?: "") }
+    val altura = remember { mutableStateOf(paciente.altura?.toString() ?: "") }
 
     Column(
         modifier = modifier
-            .fillMaxSize(),
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -61,6 +72,38 @@ fun Mostrar(modifier: Modifier = Modifier, paciente: Paciente, navHostController
             onValueChange = { sexo.value = it },
             label = { Text("Sexo") }
         )
+        TextField(
+            value = direccion.value,
+            onValueChange = { direccion.value = it },
+            label = { Text("Dirección") }
+        )
+        TextField(
+            value = telefono.value,
+            onValueChange = { telefono.value = it },
+            label = { Text("Teléfono") }
+        )
+        TextField(
+            value = tipo_sangre.value,
+            onValueChange = { tipo_sangre.value = it },
+            label = { Text("Tipo de sangre") }
+        )
+        TextField(
+            value = peso.value,
+            onValueChange = { peso.value = it },
+            label = { Text("Peso") },
+            keyboardOptions = KeyboardOptions.Default.copy(
+                keyboardType = KeyboardType.Number
+            )
+        )
+        TextField(
+            value = altura.value,
+            onValueChange = { altura.value = it },
+            label = { Text("Altura") },
+            keyboardOptions = KeyboardOptions.Default.copy(
+                keyboardType = KeyboardType.Number
+            )
+        )
+
         Row(
             modifier = modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
@@ -84,7 +127,12 @@ fun Mostrar(modifier: Modifier = Modifier, paciente: Paciente, navHostController
                         nombre = nombre.value,
                         apellido = apellido.value,
                         edad = edad.value.toIntOrNull() ?: paciente.edad,
-                        sexo = sexo.value.first()
+                        sexo = sexo.value.first(),
+                        direccion = direccion.value,
+                        telefono = telefono.value,
+                        tipo_sangre = tipo_sangre.value,
+                        peso = peso.value.toFloatOrNull(),
+                        altura = altura.value.toFloatOrNull()
                     )
                     viewModel.updatePaciente(paciente.id!!, updatedPaciente)
                     Toast.makeText(
@@ -96,6 +144,14 @@ fun Mostrar(modifier: Modifier = Modifier, paciente: Paciente, navHostController
                 }
             }) {
                 Text(text = "Guardar")
+            }
+        }
+        Row(
+            modifier = modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Button(onClick = { navHostController.navigate("pacientes") }) {
+                Text(text = "Regresar")
             }
         }
     }

@@ -1,5 +1,6 @@
 package com.vector.pacientscrud.ui.navigation
 
+import MainScreen
 import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -18,11 +19,13 @@ fun MyNavHost(
     navController: NavHostController = rememberNavController(),
     modifier: Modifier = Modifier
 ) {
-    NavHost(navController = navController  , startDestination = "pacientes", modifier = modifier) {
+    NavHost(navController = navController  , startDestination = "menu", modifier = modifier) {
+        composable("menu"){
+            MainScreen(navHostController = navController)
+        }
         composable("pacientes"){
             Screen(navHostController = navController)
         }
-
         composable("Buscar/{pacienteJson}") { backStackEntry ->
             val pacienteJson = backStackEntry.arguments?.getString("pacienteJson")
             val paciente = pacienteJson?.let { json ->
